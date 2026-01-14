@@ -9,6 +9,7 @@ import {
   type TodoItem,
   type TripPlan,
 } from "../lib/storage";
+import { TOP_DESTINATIONS, type DestinationInfo } from "../lib/destinations";
 
 const intentPlans: Record<
   string,
@@ -164,6 +165,24 @@ const getDurationLabel = (start?: string, end?: string) => {
   return `${diff} days`;
 };
 
+const normalizeText = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const scoreDestinationMatch = (query: string, destination: DestinationInfo) => {
+  const name = normalizeText(destination.name);
+  const country = normalizeText(destination.country);
+  if (!query) return 0;
+  if (query === name) return 3;
+  if (name.includes(query) || query.includes(name)) return 2;
+  if (query === country) return 2;
+  if (country.includes(query) || query.includes(country)) return 1;
+  return 0;
+};
+
 export default function TripsPage() {
   const [locationType, setLocationType] = useState("City");
   const [location, setLocation] = useState("");
@@ -227,6 +246,15 @@ export default function TripsPage() {
 
   const tripLabel =
     activeTrip?.location ?? activeTrip?.destination ?? "your trip";
+
+  const locationQuery = normalizeText(activeTrip?.location ?? location);
+  const destinationMatches = TOP_DESTINATIONS.map((destination) => ({
+    destination,
+    score: scoreDestinationMatch(locationQuery, destination),
+  }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.destination.name.localeCompare(b.destination.name))
+    .slice(0, 3);
 
   const addTodoItem = (text: string) => {
     const entry: TodoItem = {
@@ -448,6 +476,39 @@ export default function TripsPage() {
             </p>
             {activeTrip ? (
               <div className="mt-4 flex flex-col gap-4 text-sm text-[#6f4a4a]">
+                <div>
+                  <span className="text-xs uppercase tracking-[0.3em] text-[#b06767]">
+                    Local highlights
+                  </span>
+                  {destinationMatches.length ? (
+                    <ul className="mt-2 grid gap-2">
+                      {destinationMatches.map(({ destination }) => (
+                        <li
+                          key={destination.name}
+                          className="rounded-2xl border border-[#f3e0e0] bg-white px-3 py-3"
+                        >
+                          <div className="text-sm font-semibold text-[#2b1616]">
+                            {destination.name}, {destination.country}
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-[#8a5e5e]">
+                            {destination.highlights.map((item) => (
+                              <span
+                                key={`${destination.name}-${item}`}
+                                className="rounded-full bg-[#fdecec] px-3 py-1"
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-2 rounded-2xl border border-dashed border-[#f1d6d6] px-4 py-4 text-sm text-[#8a5e5e]">
+                      Add a known destination (like Toronto or Paris) to see tailored ideas.
+                    </p>
+                  )}
+                </div>
                 <div>
                   <span className="text-xs uppercase tracking-[0.3em] text-[#b06767]">
                     Recommendations

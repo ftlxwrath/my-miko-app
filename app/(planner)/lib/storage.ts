@@ -19,6 +19,7 @@ export type TripPlan = {
 
 export type ScheduleItem = {
   id: string;
+  date?: string;
   time: string;
   title: string;
   createdAt: number;
@@ -65,8 +66,54 @@ export function useLocalStorageState<T>(key: string, fallback: T) {
     if (!loaded || typeof window === "undefined") {
       return;
     }
-    window.localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value, loaded]);
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== key || event.newValue === null) {
+        return;
+      }
+      try {
+        setValue(JSON.parse(event.newValue) as T);
+      } catch {
+        setValue(fallbackRef.current);
+      }
+    };
+    const handleCustom = (event: Event) => {
+      const customEvent = event as CustomEvent<{ key: string; value: T }>;
+      if (customEvent.detail?.key !== key) {
+        return;
+      }
+      setValue(customEvent.detail.value);
+    };
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("miko-storage", handleCustom);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("miko-storage", handleCustom);
+    };
+  }, [key, loaded]);
 
-  return [value, setValue] as const;
+  const setStoredValue = (next: T | ((current: T) => T)) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    setValue((current) => {
+      const nextValue =
+        typeof next === "function"
+          ? (next as (current: T) => T)(current)
+          : next;
+      const cleanedValue = Array.isArray(nextValue)
+        ? (nextValue.filter(Boolean) as T)
+        : nextValue;
+      if (Array.isArray(cleanedValue) && cleanedValue.length === 0) {
+        window.localStorage.removeItem(key);
+      } else {
+        window.localStorage.setItem(key, JSON.stringify(cleanedValue));
+      }
+      window.dispatchEvent(
+        new CustomEvent("miko-storage", { detail: { key, value: cleanedValue } })
+      );
+      return cleanedValue;
+    });
+  };
+
+  return [value, setStoredValue] as const;
 }

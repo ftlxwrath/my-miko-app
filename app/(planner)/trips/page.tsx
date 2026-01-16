@@ -31,9 +31,9 @@ const intentPlans: Record<
       "Check opening hours and ticket rules",
     ],
     schedule: [
-      { time: "Morning", title: "Landmark visit and photos" },
-      { time: "Afternoon", title: "Neighborhood stroll" },
-      { time: "Evening", title: "Viewpoint or skyline walk" },
+      { time: "09:00", title: "Landmark visit and photos" },
+      { time: "14:00", title: "Neighborhood stroll" },
+      { time: "19:00", title: "Viewpoint or skyline walk" },
     ],
   },
   Food: {
@@ -48,9 +48,9 @@ const intentPlans: Record<
       "Note any dietary preferences",
     ],
     schedule: [
-      { time: "Morning", title: "Coffee and local breakfast" },
-      { time: "Afternoon", title: "Market or street food crawl" },
-      { time: "Evening", title: "Dinner at a must-try spot" },
+      { time: "09:00", title: "Coffee and local breakfast" },
+      { time: "13:00", title: "Market or street food crawl" },
+      { time: "19:30", title: "Dinner at a must-try spot" },
     ],
   },
   Culture: {
@@ -65,9 +65,9 @@ const intentPlans: Record<
       "Pack a light scarf or layers",
     ],
     schedule: [
-      { time: "Morning", title: "Museum or gallery visit" },
-      { time: "Afternoon", title: "Historic district tour" },
-      { time: "Evening", title: "Performance or cultural event" },
+      { time: "10:00", title: "Museum or gallery visit" },
+      { time: "15:00", title: "Historic district tour" },
+      { time: "19:00", title: "Performance or cultural event" },
     ],
   },
   Nature: {
@@ -78,9 +78,9 @@ const intentPlans: Record<
     ],
     todos: ["Pack water and snacks", "Charge camera or phone", "Check transit to trail"],
     schedule: [
-      { time: "Morning", title: "Scenic walk or hike" },
-      { time: "Afternoon", title: "Lake, garden, or park visit" },
-      { time: "Evening", title: "Sunset viewpoint" },
+      { time: "08:00", title: "Scenic walk or hike" },
+      { time: "13:30", title: "Lake, garden, or park visit" },
+      { time: "18:30", title: "Sunset viewpoint" },
     ],
   },
   Relaxation: {
@@ -91,9 +91,9 @@ const intentPlans: Record<
     ],
     todos: ["Pack comfortable layers", "Save two cozy cafes", "Bring a book or playlist"],
     schedule: [
-      { time: "Morning", title: "Slow breakfast and stroll" },
-      { time: "Afternoon", title: "Spa, bathhouse, or quiet park" },
-      { time: "Evening", title: "Early dinner and wind-down" },
+      { time: "09:30", title: "Slow breakfast and stroll" },
+      { time: "14:00", title: "Spa, bathhouse, or quiet park" },
+      { time: "18:00", title: "Early dinner and wind-down" },
     ],
   },
   Shopping: {
@@ -104,9 +104,9 @@ const intentPlans: Record<
     ],
     todos: ["Bring a packable tote", "Note currency exchange rates", "Save store locations"],
     schedule: [
-      { time: "Morning", title: "Market or flagship store visit" },
-      { time: "Afternoon", title: "Boutiques and local shops" },
-      { time: "Evening", title: "Pack purchases and rest" },
+      { time: "10:00", title: "Market or flagship store visit" },
+      { time: "14:30", title: "Boutiques and local shops" },
+      { time: "19:00", title: "Pack purchases and rest" },
     ],
   },
   Adventure: {
@@ -117,9 +117,9 @@ const intentPlans: Record<
     ],
     todos: ["Confirm bookings", "Pack activity gear", "Check safety guidelines"],
     schedule: [
-      { time: "Morning", title: "Main activity session" },
-      { time: "Afternoon", title: "Recovery and light exploring" },
-      { time: "Evening", title: "Easy dinner and rest" },
+      { time: "09:00", title: "Main activity session" },
+      { time: "15:00", title: "Recovery and light exploring" },
+      { time: "19:30", title: "Easy dinner and rest" },
     ],
   },
   Work: {
@@ -130,9 +130,9 @@ const intentPlans: Record<
     ],
     todos: ["Check Wi-Fi options", "Pack chargers and adapters", "Block calendar focus time"],
     schedule: [
-      { time: "Morning", title: "Deep work block" },
-      { time: "Afternoon", title: "Meetings or coworking" },
-      { time: "Evening", title: "Short city break" },
+      { time: "09:00", title: "Deep work block" },
+      { time: "14:00", title: "Meetings or coworking" },
+      { time: "19:00", title: "Short city break" },
     ],
   },
 };
@@ -266,14 +266,31 @@ export default function TripsPage() {
     setTodos((current) => [...current, entry]);
   };
 
-  const addScheduleItem = (time: string, title: string) => {
+  const addScheduleItem = (time: string, title: string, date?: string) => {
     const entry: ScheduleItem = {
       id: makeId(),
+      date,
       time,
       title,
       createdAt: Date.now(),
     };
     setScheduleItems((current) => [...current, entry]);
+  };
+
+  const addAllTodos = () => {
+    helperPlan.todos.forEach((item) =>
+      addTodoItem(`${item} for ${tripLabel}`)
+    );
+  };
+
+  const addAllSchedule = () => {
+    helperPlan.schedule.forEach((item) =>
+      addScheduleItem(
+        item.time,
+        `${item.title} in ${tripLabel}`,
+        activeTrip?.startDate
+      )
+    );
   };
 
   const helperPlan = intentPlans[activeTrip?.intent ?? ""] ?? intentPlans.Sightseeing;
@@ -525,9 +542,18 @@ export default function TripsPage() {
                   </ul>
                 </div>
                 <div>
-                  <span className="text-xs uppercase tracking-[0.3em] text-[#b06767]">
-                    Quick to-dos
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-[0.3em] text-[#b06767]">
+                      Quick to-dos
+                    </span>
+                    <button
+                      className="rounded-full border border-[#f1d6d6] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b06767] transition hover:border-[#b34343] hover:text-[#b34343]"
+                      type="button"
+                      onClick={addAllTodos}
+                    >
+                      Add all
+                    </button>
+                  </div>
                   <ul className="mt-2 grid gap-2">
                     {helperPlan.todos.map((item) => (
                       <li
@@ -549,9 +575,18 @@ export default function TripsPage() {
                   </ul>
                 </div>
                 <div>
-                  <span className="text-xs uppercase tracking-[0.3em] text-[#b06767]">
-                    Schedule starters
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-[0.3em] text-[#b06767]">
+                      Schedule starters
+                    </span>
+                    <button
+                      className="rounded-full border border-[#f1d6d6] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b06767] transition hover:border-[#b34343] hover:text-[#b34343]"
+                      type="button"
+                      onClick={addAllSchedule}
+                    >
+                      Add all
+                    </button>
+                  </div>
                   <ul className="mt-2 grid gap-2">
                     {helperPlan.schedule.map((item) => (
                       <li
@@ -570,7 +605,8 @@ export default function TripsPage() {
                           onClick={() =>
                             addScheduleItem(
                               item.time,
-                              `${item.title} in ${tripLabel}`
+                              `${item.title} in ${tripLabel}`,
+                              activeTrip?.startDate
                             )
                           }
                         >

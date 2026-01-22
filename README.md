@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Miko Planner
 
-## Getting Started
+A gentle trip planner with schedules, to-dos, and a companion that keeps things encouraging.
 
-First, run the development server:
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Layout
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/(planner)/page.tsx` Home dashboard (trips + schedule + to-dos summary)
+- `app/(planner)/trips/page.tsx` Trip planning + suggestions
+- `app/(planner)/schedule/page.tsx` Timetable view + schedule builder
+- `app/(planner)/todos/page.tsx` To-do list
+- `app/(planner)/companion/page.tsx` Companion prompt setup
+- `app/(planner)/components` Shared UI blocks (Miko, notifications)
+- `app/(planner)/lib` Shared logic + storage + datasets
 
-## Learn More
+## Data Flow
 
-To learn more about Next.js, take a look at the following resources:
+- State is stored in localStorage via `useLocalStorageState` in `app/(planner)/lib/storage.ts`.
+- Notifications are computed in `app/(planner)/lib/notifications.ts` and used by both the nav dropdown and Miko popups.
+- Trip suggestions use `app/(planner)/lib/destinations.ts` for the top 100 destination highlights.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Team Workstreams
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+See `docs/WORKSTREAMS.md` for task boundaries and ownership suggestions.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `npm run dev` start the dev server
+- `npm run build` build for production
+- `npm start` run the production build
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
